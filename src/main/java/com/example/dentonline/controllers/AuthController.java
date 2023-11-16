@@ -1,16 +1,20 @@
 package com.example.dentonline.controllers;
 
+import com.example.dentonline.models.Doctor;
 import com.example.dentonline.models.User;
 import com.example.dentonline.dto.LoginDTO;
 import com.example.dentonline.dto.SignupDTO;
 import com.example.dentonline.dto.TokenDTO;
 import com.example.dentonline.security.TokenGenerator;
+import com.example.dentonline.services.DoctorService;
+import com.example.dentonline.services.UserManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
@@ -26,23 +30,31 @@ import java.util.Collections;
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
-    UserDetailsManager userDetailsManager;
+    UserManager userManager;
     @Autowired
     TokenGenerator tokenGenerator;
     @Autowired
     DaoAuthenticationProvider daoAuthenticationProvider;
     @Autowired
+    DoctorService doctorService;
+    @Autowired
     @Qualifier("jwtRefreshTokenAuthProvider")
     JwtAuthenticationProvider refreshTokenAuthProvider;
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody SignupDTO signupDTO) {
-        User user = new User(signupDTO.getUsername(), signupDTO.getPassword());
-        userDetailsManager.createUser(user);
+    public ResponseEntity<?> register(@RequestBody SignupDTO signupDTO) {
+        userManager.createUser(signupDTO);
+        UserDetails userDetails = userManager.loadUserByUsername(signupDTO.getUsername());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
 
-        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(user, signupDTO.getPassword(), Collections.EMPTY_LIST);
-
+        // Zwracamy token w odpowiedzi
         return ResponseEntity.ok(tokenGenerator.createToken(authentication));
+    }
+    @PostMapping("/doctor")
+    public ResponseEntity<Doctor> registerDoctor(@RequestBody SignupDTO signupDTO) {
+        Doctor doctor = doctorService.registerNewDoctor(signupDTO);
+        return ResponseEntity.ok(doctor);
     }
 
     @PostMapping("/login")
@@ -56,7 +68,7 @@ public class AuthController {
     public ResponseEntity token(@RequestBody TokenDTO tokenDTO) {
         Authentication authentication = refreshTokenAuthProvider.authenticate(new BearerTokenAuthenticationToken(tokenDTO.getRefreshToken()));
         Jwt jwt = (Jwt) authentication.getCredentials();
-        // check if present in db and not revoked, etc
+
 
         return ResponseEntity.ok(tokenGenerator.createToken(authentication));
     }

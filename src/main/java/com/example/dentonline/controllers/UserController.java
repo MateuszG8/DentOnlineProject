@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +21,11 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("#user.id == #id")
-    public ResponseEntity user(@AuthenticationPrincipal User user, @PathVariable String id) {
-        return ResponseEntity.ok(UserDTO.from(userRepository.findById(id).orElseThrow()));
+    public ResponseEntity<UserDTO> getUser(@AuthenticationPrincipal User user, @PathVariable String id) {
+        User retrievedUser = userRepository.findById(id).orElseThrow(
+                () -> new UsernameNotFoundException("User not found")
+        );
+        return ResponseEntity.ok(UserDTO.from(retrievedUser));
+
     }
 }
