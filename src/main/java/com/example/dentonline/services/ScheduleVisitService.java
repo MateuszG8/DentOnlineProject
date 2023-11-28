@@ -93,7 +93,8 @@ public class ScheduleVisitService {
         visit.setDoctorId(visitDto.getDoctorId());
         visit.setDate(visitDto.getDate());
         visit.setTime(visitDto.getTime());
-        return scheduleVisitRepository.save(visit);
+        scheduleVisitRepository.save(visit);
+        return visit;
     }
 
     public void deleteVisit(String visitId) {
