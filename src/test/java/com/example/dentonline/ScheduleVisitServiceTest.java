@@ -71,6 +71,26 @@ public class ScheduleVisitServiceTest {
         assertEquals(visitDto.getTime(), result.getTime());
         verify(scheduleVisitRepository).save(any(ScheduleVisit.class));
     }
+    @Test
+    public void deleteVisit_WhenVisitExists_ShouldDeleteVisit() {
+
+        String visitId = "visit1";
+        when(scheduleVisitRepository.existsById(visitId)).thenReturn(true);
+        assertDoesNotThrow(() -> scheduleVisitService.deleteVisit(visitId));
+
+        verify(scheduleVisitRepository).deleteById(visitId);
+    }
+
+
+    @Test
+    public void deleteVisit_WhenVisitDoesNotExist_ShouldThrowException() {
+        String visitId = "visit2";
+        when(scheduleVisitRepository.existsById(visitId)).thenReturn(false);
+        assertThrows(IllegalArgumentException.class, () -> {
+            scheduleVisitService.deleteVisit(visitId);
+        });
+        verify(scheduleVisitRepository, never()).deleteById(visitId);
+    }
 }
 
 
