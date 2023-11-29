@@ -1,4 +1,4 @@
-package com.example.dentonline;
+package com.example.dentonline.services;
 
 import com.example.dentonline.dto.SignupDTO;
 import com.example.dentonline.models.Doctor;
