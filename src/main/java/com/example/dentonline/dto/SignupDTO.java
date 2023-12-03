@@ -12,4 +12,5 @@ public class SignupDTO {
     private String firstName;
     private String lastName;
     private String phone;
+
 }
