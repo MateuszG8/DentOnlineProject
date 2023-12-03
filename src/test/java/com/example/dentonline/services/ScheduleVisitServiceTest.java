@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -91,6 +92,45 @@ public class ScheduleVisitServiceTest {
         });
         verify(scheduleVisitRepository, never()).deleteById(visitId);
     }
+
+    @Test
+    public void getAvailableSlotsForDoctor_WhenDoctorIsWorking() {
+        LocalDate date = LocalDate.now();
+        String doctorId = "doctor1";
+        WorkingHours workingHours = new WorkingHours();
+        workingHours.setOpen(LocalTime.of(9, 0));
+        workingHours.setClose(LocalTime.of(17, 0));
+        workingHours.setWorking(true);
+        Map<LocalDate, WorkingHours> workingHoursMap = new HashMap<>();
+        workingHoursMap.put(date, workingHours);
+        Doctor doctor = new Doctor();
+        doctor.setWorkingHours(workingHoursMap);
+
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+        when(scheduleVisitRepository.existsByDoctorIdAndDateAndTime(anyString(), any(LocalDate.class), any(LocalTime.class))).thenReturn(false);
+
+        List<LocalTime> availableSlots = scheduleVisitService.getAvailableSlotsForDoctor(date, doctorId);
+
+        assertFalse(availableSlots.isEmpty());
+        assertTrue(availableSlots.contains(LocalTime.of(9, 0)));
+        assertTrue(availableSlots.contains(LocalTime.of(16, 30)));
+    }
+
+
+    @Test
+    public void getAvailableSlotsForDoctor_WhenDoctorIsNotWorking() {
+        LocalDate date = LocalDate.now();
+        String doctorId = "doctor1";
+        Doctor doctor = new Doctor();
+        doctor.setWorkingHours(new HashMap<>());
+
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+
+        List<LocalTime> availableSlots = scheduleVisitService.getAvailableSlotsForDoctor(date, doctorId);
+
+        assertTrue(availableSlots.isEmpty());
+    }
+
 }
 
 
