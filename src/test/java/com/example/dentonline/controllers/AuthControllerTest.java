@@ -1,6 +1,7 @@
-package com.example.dentonline;
+package com.example.dentonline.controllers;
 
 
+import com.example.dentonline.DentOnlineApplication;
 import com.example.dentonline.dto.SignupDTO;
 import com.example.dentonline.repositories.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,13 +67,10 @@ public class AuthControllerTest {
     }
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
-        // Tworzenie obiektu DTO dla rejestracji
+
         SignupDTO signupDTO = new SignupDTO();
         signupDTO.setUsername("testuser");
         signupDTO.setPassword("testpassword");
-        // Tutaj uzupełnij resztę danych wymaganych w SignupDTO
-
-        // Wysyłanie żądania POST do endpointu rejestracyjnego
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signupDTO)))
